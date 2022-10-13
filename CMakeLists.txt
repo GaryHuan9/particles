@@ -3,9 +3,14 @@ project(particles)
 
 set(CMAKE_CXX_STANDARD 20)
 
-add_executable(particles src/main.cpp)
-add_subdirectory(ext/fmt)
+add_executable(particles
+        src/main.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/test.cl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 find_package(OpenCL REQUIRED)
+find_package(raylib CONFIG REQUIRED)
+find_package(fmt CONFIG REQUIRED)
+
 target_link_libraries(particles PRIVATE OpenCL::OpenCL)
-target_link_libraries(particles PRIVATE fmt::fmt)
+target_link_libraries(particles PRIVATE raylib)
+target_link_libraries(particles PRIVATE fmt::fmt-header-only)
