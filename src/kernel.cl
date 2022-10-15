@@ -33,8 +33,7 @@ kernel void update_velocities(const float delta_time,
 		acceleration = total;
 	}
 
-//	const float G = 6.67430E-4f;
-	const float G = 6.67430E-11f;
+	const float G = 6.67430E-13f;
 	acceleration *= G * delta_time;
 
 	x_velocities[id] += acceleration.x;

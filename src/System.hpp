@@ -17,15 +17,16 @@ namespace ptl
 		{
 			//length of 1.0 = 10^9 m
 			//mass of 1.0   = 10^25 kg
+
 			// G * m * 10^25 / (r * 10^9)^2 = G' * m / r^2 * 10^9
 			// G * 10^25 / 10^9^2 = G' * 10^9
-			// G' = G * 10^25 / 10^9 = G * 10^16
+			// G' = G * 10^25 / 10^9^3 = G * 10^-2
 
-			x_position *= 1E9f;
-			y_position *= 1E9f;
-			x_velocity *= 1E9f;
-			y_velocity *= 1E9f;
-			mass *= 10E25f;
+//			x_position *= 1E9f;
+//			y_position *= 1E9f;
+//			x_velocity *= 1E9f;
+//			y_velocity *= 1E9f;
+//			mass *= 1E25f;
 
 			x_positions_insert.push_back(x_position);
 			y_positions_insert.push_back(y_position);
@@ -45,8 +46,8 @@ namespace ptl
 
 		void extract(size_t index, float& x_position, float& y_position, float& radius) const
 		{
-			x_position = x_positions[index] / 1E9f;
-			y_position = y_positions[index] / 1E9f;
+			x_position = x_positions[index];
+			y_position = y_positions[index];
 			radius = radii[index];
 		}
 

@@ -52,8 +52,8 @@ int main()
 	cl::Context context(device);
 	cl::CommandQueue queue(context, device);
 
-	std::uniform_real_distribution<float> speed_distribution(-7.0f, 7.0f);
-	std::uniform_real_distribution<float> mass_distribution(30.0f, 1000.0f);
+	std::uniform_real_distribution<float> speed_distribution(-0.00005f, 0.00005f);
+	std::uniform_real_distribution<float> mass_distribution(0.001f, 0.02f);
 	std::random_device prng;
 
 	ptl::Application application;
@@ -62,25 +62,23 @@ int main()
 //	system.insert(300.0f, 300.0f, 0.0f, 0.0f, 1.989E5f, 10.0f); //Sun
 //	system.insert(300.0f + 149.19f, 300.0f, 0.0f, 3E-5f, 5.972E-1f); //Earth
 
-	system.insert(300.0f, 300.0f, 0.0f, 0.0f, 1.989E5f, 10.0f); //Sun
-	system.insert(300.0f + 149.19f, 300.0f, 0.0f, 3E-5f, 5.972E-1f); //Earth
-
-//	for (int x = 10; x < 30; ++x)
-//	{
-//		for (int y = 10; y < 30; ++y)
-//		{
-//			system.insert(static_cast<float>(x * 20), static_cast<float>(y * 20),
-//			              speed_distribution(prng), speed_distribution(prng),
-//			              mass_distribution(prng));
-//		}
-//	}
+	for (int x = 10; x < 50; ++x)
+	{
+		for (int y = 10; y < 50; ++y)
+		{
+			system.insert(static_cast<float>(x * 10), static_cast<float>(y * 10), 0.0f, 0.0f, 10.0f);
+		}
+	}
 
 	float delta_time;
 
 	while (application.update(delta_time))
 	{
-		for (int i = 240 - 1; i >= 0; --i) system.update(delta_time * 360.0f, i == 0);
-//		system.update(delta_time);
+		constexpr int Divisions = 24;
+		constexpr float Speed = 3600.0f * 365.0f;
+		constexpr float Multiplier = Speed / Divisions;
+
+		for (int i = Divisions - 1; i >= 0; --i) system.update(delta_time * Multiplier, i == 0);
 
 		for (size_t i = 0; i < system.size(); i++)
 		{
@@ -95,11 +93,11 @@ int main()
 		int32_t x;
 		int32_t y;
 
-//		if (!ptl::Application::last_click(x, y)) continue;
-//
-//		system.insert(static_cast<float>(x), static_cast<float>(y),
-//		              speed_distribution(prng), speed_distribution(prng),
-//		              mass_distribution(prng));
+		if (!ptl::Application::last_click(x, y)) continue;
+
+		system.insert(static_cast<float>(x), static_cast<float>(y),
+		              speed_distribution(prng), speed_distribution(prng),
+		              mass_distribution(prng));
 	}
 
 	return 0;
