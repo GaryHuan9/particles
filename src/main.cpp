@@ -1,10 +1,10 @@
-#include <iostream>
-#include <vector>
 #include <random>
 #include <fstream>
 #include <CL/cl.hpp>
-#include <fmt/format.h>
-#include <raylib.h>
+
+#include "main.hpp"
+#include "Application.hpp"
+#include "System.hpp"
 
 bool find_device(cl::Device& device)
 {
@@ -50,62 +50,57 @@ int main()
 	if (!find_device(device)) return 0;
 
 	cl::Context context(device);
-	cl::Program::Sources sources;
-
-	constexpr int SIZE = 10;
-
-	std::vector<int> A_h(SIZE);
-	std::vector<int> B_h(SIZE);
-	std::vector<int> C_h(SIZE);
-
-	std::mt19937 prng(42);
-	std::uniform_int_distribution<std::mt19937::result_type> distribution(0, 999999);
-
-	std::generate(A_h.begin(), A_h.end(), [&]() { return distribution(prng); });
-	std::generate(B_h.begin(), B_h.end(), [&]() { return distribution(prng); });
-
-	cl::Buffer A_d(context, CL_MEM_READ_ONLY, sizeof(int) * SIZE);
-	cl::Buffer B_d(context, CL_MEM_READ_ONLY, sizeof(int) * SIZE);
-	cl::Buffer C_d(context, CL_MEM_WRITE_ONLY, sizeof(int) * SIZE);
-
 	cl::CommandQueue queue(context, device);
 
-	queue.enqueueWriteBuffer(A_d, CL_TRUE, 0, sizeof(int) * SIZE, A_h.data());
-	queue.enqueueWriteBuffer(B_d, CL_TRUE, 0, sizeof(int) * SIZE, B_h.data());
+	std::uniform_real_distribution<float> speed_distribution(-7.0f, 7.0f);
+	std::uniform_real_distribution<float> mass_distribution(30.0f, 1000.0f);
+	std::random_device prng;
 
-	std::ifstream file("test.cl");
-	std::string kernel_code{ std::istreambuf_iterator<char>(file), std::istreambuf_iterator<char>() };
+	ptl::Application application;
+	ptl::System system(device);
 
-	std::cout << kernel_code << std::endl;
+//	system.insert(300.0f, 300.0f, 0.0f, 0.0f, 1.989E5f, 10.0f); //Sun
+//	system.insert(300.0f + 149.19f, 300.0f, 0.0f, 3E-5f, 5.972E-1f); //Earth
 
-	sources.push_back({ kernel_code.c_str(), kernel_code.size() });
-	cl::Program program(context, sources);
+	system.insert(300.0f, 300.0f, 0.0f, 0.0f, 1.989E5f, 10.0f); //Sun
+	system.insert(300.0f + 149.19f, 300.0f, 0.0f, 3E-5f, 5.972E-1f); //Earth
 
-	if (program.build({ device }) != CL_SUCCESS)
-	{
-		std::cout << " Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << "\n";
-		exit(1);
-	}
-
-	cl::make_kernel<cl::Buffer, cl::Buffer, cl::Buffer> simple_add(cl::Kernel(program, "simple_add"));
-	cl::NDRange global(SIZE);
-	simple_add(cl::EnqueueArgs(queue, global), A_d, B_d, C_d).wait();
-
-	queue.enqueueReadBuffer(C_d, CL_TRUE, 0, sizeof(int) * SIZE, C_h.data());
-
-	fmt::print("{}", fmt::join(C_h, ", "));
-
-//	InitWindow(800, 450, "raylib [core] example - basic window");
-//
-//	while (!WindowShouldClose())
+//	for (int x = 10; x < 30; ++x)
 //	{
-//		BeginDrawing();
-//		ClearBackground(RAYWHITE);
-//		DrawText("Congrats! You created your first window!", 190, 200, 20, LIGHTGRAY);
-//		EndDrawing();
+//		for (int y = 10; y < 30; ++y)
+//		{
+//			system.insert(static_cast<float>(x * 20), static_cast<float>(y * 20),
+//			              speed_distribution(prng), speed_distribution(prng),
+//			              mass_distribution(prng));
+//		}
 //	}
+
+	float delta_time;
+
+	while (application.update(delta_time))
+	{
+		for (int i = 240 - 1; i >= 0; --i) system.update(delta_time * 360.0f, i == 0);
+//		system.update(delta_time);
+
+		for (size_t i = 0; i < system.size(); i++)
+		{
+			float x_position;
+			float y_position;
+			float radius;
+
+			system.extract(i, x_position, y_position, radius);
+			ptl::Application::draw_circle(x_position, y_position, radius);
+		}
+
+		int32_t x;
+		int32_t y;
+
+//		if (!ptl::Application::last_click(x, y)) continue;
 //
-//	CloseWindow();
+//		system.insert(static_cast<float>(x), static_cast<float>(y),
+//		              speed_distribution(prng), speed_distribution(prng),
+//		              mass_distribution(prng));
+	}
 
 	return 0;
 }

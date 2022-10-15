@@ -4,8 +4,10 @@ project(particles)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(particles
-        src/main.cpp)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/test.cl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
+        src/main.cpp
+        src/Application.cpp
+        src/System.cpp)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/kernel.cl ${CMAKE_CURRENT_BINARY_DIR} COPYONLY)
 
 find_package(OpenCL REQUIRED)
 find_package(raylib CONFIG REQUIRED)
