@@ -111,8 +111,6 @@ void ptl::System::update_buffers()
 	y_velocities_insert.clear();
 	masses_insert.clear();
 	buffer_size = new_size;
-
-	std::cout << new_size << '\n';
 }
 
 void ptl::System::update_kernel_arguments()

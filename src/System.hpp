@@ -1,8 +1,8 @@
 #ifndef PARTICLES_PARTICLE_H
 #define PARTICLES_PARTICLE_H
 
-#include "main.hpp"
 #include <cl/cl.hpp>
+#include "main.hpp"
 
 namespace ptl
 {
@@ -44,17 +44,24 @@ namespace ptl
 			return buffer_size;
 		}
 
-		void extract(size_t index, float& x_position, float& y_position, float& radius) const
+		const float* get_x_positions() const
 		{
-			x_position = x_positions[index];
-			y_position = y_positions[index];
-			radius = radii[index];
+			return x_positions.data();
 		}
 
-		void update(float delta_time, bool write_back = true);
+		const float* get_y_positions() const
+		{
+			return y_positions.data();
+		}
+
+		const float* get_radii() const
+		{
+			return radii.data();
+		}
+
+		void update(float delta_time = 0.0f, bool write_back = true);
 
 		void update_buffers();
-
 	private:
 		void update_kernel_arguments();
 

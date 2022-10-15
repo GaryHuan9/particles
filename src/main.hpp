@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include <vector>
+#include <memory>
 #include <fstream>
 #include <iostream>
 
