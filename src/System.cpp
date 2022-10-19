@@ -20,7 +20,7 @@ ptl::System::System(cl::Device& device)
 	  y_velocities_buffer(context, CL_MEM_READ_WRITE, buffer_capacity * sizeof(float)),
 	  masses_buffer(context, CL_MEM_READ_ONLY, buffer_capacity * sizeof(float))
 {
-	if (program.build({ device }) != CL_SUCCESS)
+	if (program.build({ device }, "-cl-denorms-are-zero -cl-fast-relaxed-math") != CL_SUCCESS)
 	{
 		std::cout << " Error building: " << program.getBuildInfo<CL_PROGRAM_BUILD_LOG>(device) << "\n";
 		exit(1);

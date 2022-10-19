@@ -6,6 +6,14 @@
 #include "Application.hpp"
 #include "System.hpp"
 
+template<class T>
+T square(T value)
+{
+	return value * value;
+}
+
+std::default_random_engine prng(42);
+
 bool find_device(cl::Device& device)
 {
 	std::vector<cl::Platform> platforms;
@@ -85,6 +93,70 @@ void spawn_golden_ratio(ptl::System& system)
 	}
 }
 
+void spawn_galaxy(ptl::System& system, float x_position, float y_position,
+                  float x_center_velocity, float y_center_velocity,
+                  uint32_t count, float radius, float mass, bool clockwise = false)
+{
+	std::exponential_distribution<float> exponential_distribution(2.0f);
+	std::uniform_real_distribution<float> uniform_distribution(0.0f, 1.0f);
+
+	float mass_ratio = radius * 3.0f;
+	float mass_remain = mass / mass_ratio;
+	float mass_center = mass - mass_remain;
+	float mass_single = mass_remain / (float)count;
+
+	system.insert(x_position, y_position, x_center_velocity, y_center_velocity, mass_center);
+
+	while (count-- > 0)
+	{
+		float distance = std::sqrt(exponential_distribution(prng));
+		float theta = uniform_distribution(prng) * (float)std::numbers::pi * 2.0f;
+
+		float arm = square(std::sin(std::pow(distance * mass_ratio, 0.35f) - theta));
+		float limit = std::max(arm, square(distance - 0.7f) + 0.1f);
+
+		if (uniform_distribution(prng) > limit)
+		{
+			++count;
+			continue;
+		}
+
+		distance *= radius;
+
+		float x = distance * std::cos(theta);
+		float y = distance * std::sin(theta);
+
+		theta -= (float)std::numbers::pi / 2.0f;
+
+		float v = std::sqrt(6.67430E-13f * mass_center / distance);
+		float x_velocity = v * std::cos(theta);
+		float y_velocity = v * std::sin(theta);
+
+		if (clockwise)
+		{
+			std::swap(x, y);
+			std::swap(x_velocity, y_velocity);
+		}
+
+		system.insert(x_position + x, y_position + y, x_center_velocity + x_velocity, y_center_velocity + y_velocity, mass_single);
+	}
+}
+
+void spawn_galaxy_collision(ptl::System& system)
+{
+	float x_center;
+	float y_center;
+
+	ptl::Application::get_center(x_center, y_center);
+
+//	spawn_galaxy(system, x_center - 300.0f, y_center, 7E-5f, 2.5E-5f, 13000, 180.0f, 1E7f);
+//	spawn_galaxy(system, x_center + 300.0f, y_center, -7E-5f, -2.5E-5f, 13000, 180.0f, 1E7f);
+
+	spawn_galaxy(system, x_center - 600.0f, y_center, 7E-5f, 7E-5f, 7000, 120.0f, 1E7f);
+	spawn_galaxy(system, x_center + 600.0f, y_center, -7E-5f, -7E-5f, 7000, 120.0f, 1E7f);
+	spawn_galaxy(system, x_center, y_center, 0.0f, 0.0f, 11000, 150.0f, 1.8E7f, true);
+}
+
 int main()
 {
 	cl::Device device;
@@ -93,15 +165,12 @@ int main()
 	cl::Context context(device);
 	cl::CommandQueue queue(context, device);
 
-	std::uniform_real_distribution<float> speed_distribution(-0.00005f, 0.00005f);
-	std::uniform_real_distribution<float> mass_distribution(0.001f, 0.02f);
-	std::random_device prng;
-
 	ptl::Application application;
 	ptl::System system(device);
 
 //	spawn_solar_system(system);
-	spawn_golden_ratio(system);
+//	spawn_golden_ratio(system);
+	spawn_galaxy_collision(system);
 
 	float delta_time;
 
@@ -118,7 +187,7 @@ int main()
 		application.text(fmt::format("FPS: {}", 1.0f / delta_time).c_str());
 		application.text(fmt::format("Count: {}", system.size()).c_str());
 
-		modified_time |= application.slider("Time Division", time_divisions, 1, 64);
+		modified_time |= application.slider("Time Division", time_divisions, 1, 16);
 		modified_time |= application.slider("Time Scale", time_scale, -2.0f, 20.0f);
 		if (application.button(paused ? "Resume" : "Pause")) paused = !paused;
 
@@ -138,15 +207,6 @@ int main()
 		}
 
 		application.draw(system.size(), system.get_x_positions(), system.get_y_positions(), system.get_radii());
-
-//		int32_t x;
-//		int32_t y;
-//
-//		if (!ptl::Application::last_click(x, y)) continue;
-//
-//		system.insert(static_cast<float>(x), static_cast<float>(y),
-//		              speed_distribution(prng), speed_distribution(prng),
-//		              mass_distribution(prng), 100.0f);
 	}
 
 	return 0;

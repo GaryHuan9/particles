@@ -36,7 +36,7 @@ namespace ptl
 
 			x_positions.push_back(x_position);
 			y_positions.push_back(y_position);
-			radii.push_back(radius);
+			radii.push_back(std::max(std::log(mass), 2.0f));
 		}
 
 		size_t size() const

@@ -21,7 +21,7 @@ void ptl::Renderer::draw(size_t length, const float* x_positions, const float* y
 
 		rlSetTexture(particle_texture.id);
 		rlBegin(RL_QUADS);
-		rlColor4ub(255, 255, 255, 255);
+		rlColor4ub(255, 255, 255, 127);
 		rlNormal3f(0.0f, 0.0f, 1.0f);
 
 		size_t old_index = current_index;

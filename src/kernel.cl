@@ -19,13 +19,12 @@ kernel void update_velocities(const float delta_time,
 
 	for (size_t i = 0; i < get_global_size(0); i++)
 	{
-		if (i == id) continue;
-
 		float2 difference = (float2)(x_positions[i] - x_positions[id], y_positions[i] - y_positions[id]);
 
 		float2 direction = fast_normalize(difference);
 		float distance2 = dot(difference, difference);
 		float2 result = masses[i] / distance2 * direction;
+		if (distance2 == 0.0f) result = 0.0f;
 
 		float2 delta = result - error;
 		float2 total = acceleration + delta;
